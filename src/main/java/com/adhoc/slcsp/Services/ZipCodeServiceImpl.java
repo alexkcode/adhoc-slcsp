@@ -36,10 +36,22 @@ public class ZipCodeServiceImpl implements ZipCodeService {
                     .name(record.get("name"))
                     .rateArea(Integer.parseInt(record.get("rate_area")))
                     .build();
+            if (checkNotEmpty(zipCodeRateArea)) {
+                log.warn("The following record read in to the parser has an empty column: "
+                                 + zipCodeRateArea);
+            }
             parsed.add(zipCodeRateArea);
         }
 
         return parsed;
+    }
+
+    private Boolean checkNotEmpty(ZipCodeRateArea zipCodeRateArea) {
+        return zipCodeRateArea.getZipCode().isEmpty() ||
+                zipCodeRateArea.getCountyCode().isEmpty() ||
+                zipCodeRateArea.getName().isEmpty() ||
+                zipCodeRateArea.getRateArea() == null ||
+                zipCodeRateArea.getState().isEmpty();
     }
 
     public void saveCsv(String path) {
