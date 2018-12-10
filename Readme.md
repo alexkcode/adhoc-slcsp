@@ -1,4 +1,4 @@
-##Technology Rationale
+## Technology Rationale
 
 - Spring Boot
     - All the usual Spring framework nicieties
