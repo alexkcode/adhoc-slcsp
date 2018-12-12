@@ -1,6 +1,7 @@
 package com.adhoc.slcsp.Services;
 
 import com.adhoc.slcsp.Models.Plan;
+import com.adhoc.slcsp.Models.ZipCodeRateArea;
 import com.adhoc.slcsp.Repositories.PlanRepository;
 import com.adhoc.slcsp.Repositories.ZipCodeRepository;
 import org.junit.Test;
@@ -56,7 +57,11 @@ public class PlanServiceImplTest {
 
     @Test
     public void whenGivenZipCodeWithTwoRateAreasShouldReturnEmpty() {
-        List<String> fakeReturn = Arrays.asList("11", "13");
+        ZipCodeRateArea zipCodeRateAreaOne = new ZipCodeRateArea();
+        zipCodeRateAreaOne.setRateArea(11);
+        ZipCodeRateArea zipCodeRateAreaTwo = new ZipCodeRateArea();
+        zipCodeRateAreaTwo.setRateArea(13);
+        List<ZipCodeRateArea> fakeReturn = Arrays.asList(zipCodeRateAreaOne, zipCodeRateAreaTwo);
         when(zipCodeRepository.findAllRateAreasByZipCode("36749")).thenReturn(fakeReturn);
 
         String zip = "36749";
@@ -67,7 +72,9 @@ public class PlanServiceImplTest {
 
     @Test
     public void whenGivenZipCodeWithEmptyRateAreasShouldReturnEmpty() {
-        List<String> fakeReturn = Arrays.asList("");
+        ZipCodeRateArea zipCodeRateArea = new ZipCodeRateArea();
+        zipCodeRateArea.setRateArea(null);
+        List<ZipCodeRateArea> fakeReturn = Arrays.asList(zipCodeRateArea);
         when(zipCodeRepository.findAllRateAreasByZipCode("36749")).thenReturn(fakeReturn);
 
         String zip = "36749";
@@ -78,10 +85,15 @@ public class PlanServiceImplTest {
 
     @Test
     public void whenGivenZipCodeWithOneRateAreaShouldReturnOneRate() {
-        List<String> fakeReturn = Arrays.asList("11");
+        ZipCodeRateArea zipCodeRateArea = new ZipCodeRateArea();
+        zipCodeRateArea.setRateArea(11);
+        List<ZipCodeRateArea> fakeReturn = Arrays.asList(zipCodeRateArea);
         when(zipCodeRepository.findAllRateAreasByZipCode("36749")).thenReturn(fakeReturn);
-        Plan fakePlan = Plan.builder().rateArea(11).rate("100.1").build();
-        when(planRepository.findPlanByRateArea("11")).thenReturn(fakePlan);
+//        Plan fakePlan = Plan.builder().rateArea(11).rate("100.1").build();
+        Plan fakePlan = new Plan();
+        fakePlan.setRateArea(11);
+        fakePlan.setRate("100.1");
+        when(planRepository.findPlanByRateArea(11)).thenReturn(fakePlan);
 
         String zip = "36749";
         String found = planService.getRateByZipCode(zip);

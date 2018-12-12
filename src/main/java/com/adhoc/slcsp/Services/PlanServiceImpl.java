@@ -34,13 +34,12 @@ public class PlanServiceImpl implements PlanService {
 
         List<Plan> parsed = new ArrayList<>();
         for (CSVRecord record : records) {
-            Plan plan = Plan.builder()
-                    .planId(record.get("plan_id"))
-                    .state(record.get("state"))
-                    .metalLevel(record.get("metal_level"))
-                    .rate(record.get("rate"))
-                    .rateArea(Integer.parseInt(record.get("rate_area")))
-                    .build();
+            Plan plan = new Plan();
+            plan.setPlanId(record.get("plan_id"));
+            plan.setState(record.get("state"));
+            plan.setMetalLevel(record.get("metal_level"));
+            plan.setRate(record.get("rate"));
+            plan.setRateArea(Integer.parseInt(record.get("rate_area")));
             if (checkNotEmpty(plan)) {
                 log.warn("The following record read in to the parser has an empty column: "
                                  + plan);
@@ -61,15 +60,21 @@ public class PlanServiceImpl implements PlanService {
 
     @Override
     public void saveCsv(String path) {
-
+        try {
+            List<Plan> parsed = parseCsv(path);
+            parsed.stream().forEach(zip -> planRepository.save(zip));
+        } catch (IOException e) {
+            log.error("CSV was not parsed correctly, did you put in the correct path?\n" + e.getMessage());
+        }
     }
 
     public String getRateByZipCode(String zipCode) {
-        List<String> rateAreas = zipCodeRepository.findAllRateAreasByZipCode(zipCode);
+        // potentially too much coupling?
+        List<ZipCodeRateArea> rateAreas = zipCodeRepository.findAllRateAreasByZipCode(zipCode);
 
         if (rateAreas.size() == 1) {
-            if (!rateAreas.get(0).isEmpty())
-                return planRepository.findPlanByRateArea(rateAreas.get(0)).getRate();
+            if (rateAreas.get(0).getRateArea() != null)
+                return planRepository.findPlanByRateArea(rateAreas.get(0).getRateArea()).getRate();
         }
 
         return "";

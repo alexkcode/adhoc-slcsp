@@ -1,6 +1,5 @@
 package com.adhoc.slcsp.Services;
 
-import com.adhoc.slcsp.Models.Plan;
 import com.adhoc.slcsp.Models.ZipCodeRateArea;
 import com.adhoc.slcsp.Repositories.PlanRepository;
 import com.adhoc.slcsp.Repositories.ZipCodeRepository;
@@ -16,7 +15,6 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 public class ZipCodeServiceImplTest {

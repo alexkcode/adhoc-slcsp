@@ -1,15 +1,17 @@
 package com.adhoc.slcsp.Models;
 
-import lombok.Builder;
 import lombok.Data;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
 @Data
-@Builder
 @Entity
 public class ZipCodeRateArea implements Serializable {
+
+    @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private long id;
 
     private String zipCode;
 
@@ -20,7 +22,10 @@ public class ZipCodeRateArea implements Serializable {
 
     private String name;
 
+    // integer to improve potential joins
     @Column(name = "rate_area")
     private Integer rateArea;
+
+    public ZipCodeRateArea() {}
 
 }

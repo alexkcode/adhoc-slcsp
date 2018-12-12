@@ -1,6 +1,5 @@
 package com.adhoc.slcsp.Models;
 
-import lombok.Builder;
 import lombok.Data;
 
 import javax.persistence.Column;
@@ -9,7 +8,6 @@ import javax.persistence.Id;
 import java.io.Serializable;
 
 @Data
-@Builder
 @Entity
 public class Plan implements Serializable {
 
@@ -24,8 +22,9 @@ public class Plan implements Serializable {
 
     private String rate;
 
-    // join with ZipCodeRateArea on rateArea
+    // integer to improve potential joins
     @Column(name = "rate_area")
     private Integer rateArea;
 
+    public Plan() {}
 }

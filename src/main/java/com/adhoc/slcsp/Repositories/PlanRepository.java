@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface PlanRepository extends CrudRepository<Plan, Long> {
 
-    public Plan findPlanByRateArea(String rateArea);
+    public Plan findPlanByRateArea(Integer rateArea);
 
 }

@@ -10,5 +10,5 @@ public interface ZipCodeService {
 
     void saveCsv(String path);
 
-    String getRateAreaByZipCode(String zipCode);
+    Integer getRateAreaByZipCode(String zipCode);
 }

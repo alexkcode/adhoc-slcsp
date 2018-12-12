@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface ZipCodeRepository extends CrudRepository<ZipCodeRateArea, Long> {
 
-    public List<String> findAllRateAreasByZipCode(String zipCode);
+    public List<ZipCodeRateArea> findAllRateAreasByZipCode(String zipCode);
 
 }

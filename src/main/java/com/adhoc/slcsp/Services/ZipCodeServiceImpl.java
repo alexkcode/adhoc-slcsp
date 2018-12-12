@@ -21,7 +21,7 @@ public class ZipCodeServiceImpl implements ZipCodeService {
     Logger log = LoggerFactory.getLogger(ZipCodeServiceImpl.class);
 
     @Autowired
-    private ZipCodeRepository zipRepo;
+    private ZipCodeRepository zipCodeRepository;
 
     public List<ZipCodeRateArea> parseCsv(String path) throws IOException {
         Reader in = new FileReader(path);
@@ -29,13 +29,12 @@ public class ZipCodeServiceImpl implements ZipCodeService {
         // appending at the end is O(1), just not for random access
         List<ZipCodeRateArea> parsed = new ArrayList<>();
         for (CSVRecord record : records) {
-            ZipCodeRateArea zipCodeRateArea = ZipCodeRateArea.builder()
-                    .zipCode(record.get("zipcode"))
-                    .state(record.get("state"))
-                    .countyCode(record.get("county_code"))
-                    .name(record.get("name"))
-                    .rateArea(Integer.parseInt(record.get("rate_area")))
-                    .build();
+            ZipCodeRateArea zipCodeRateArea = new ZipCodeRateArea();
+            zipCodeRateArea.setZipCode(record.get("zipcode"));
+            zipCodeRateArea.setState(record.get("state"));
+            zipCodeRateArea.setCountyCode(record.get("county_code"));
+            zipCodeRateArea.setName(record.get("name"));
+            zipCodeRateArea.setRateArea(Integer.parseInt(record.get("rate_area")));
             if (checkNotEmpty(zipCodeRateArea)) {
                 log.warn("The following record read in to the parser has an empty column: "
                                  + zipCodeRateArea);
@@ -57,14 +56,20 @@ public class ZipCodeServiceImpl implements ZipCodeService {
     public void saveCsv(String path) {
         try {
             List<ZipCodeRateArea> parsed = parseCsv(path);
-            parsed.stream().forEach(zip -> zipRepo.save(zip));
+            parsed.stream().forEach(zip -> zipCodeRepository.save(zip));
         } catch (IOException e) {
             log.error("CSV was not parsed correctly, did you put in the correct path?\n" + e.getMessage());
         }
     }
 
-    public String getRateAreaByZipCode(String zipCode) {
+    public Integer getRateAreaByZipCode(String zipCode) {
 
+        List<ZipCodeRateArea> rateAreas = zipCodeRepository.findAllRateAreasByZipCode(zipCode);
+
+        if (rateAreas.size() == 1) {
+            if (rateAreas.get(0).getRateArea() != null)
+                return rateAreas.get(0).getRateArea();
+        }
 
         return null;
     }
