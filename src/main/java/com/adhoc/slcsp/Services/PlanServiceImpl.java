@@ -15,11 +15,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class PlanServiceImpl implements PlanService {
 
+    public static final String SILVER = "Silver";
     Logger log = LoggerFactory.getLogger(PlanServiceImpl.class);
 
     @Autowired
@@ -38,7 +40,7 @@ public class PlanServiceImpl implements PlanService {
             plan.setPlanId(record.get("plan_id"));
             plan.setState(record.get("state"));
             plan.setMetalLevel(record.get("metal_level"));
-            plan.setRate(record.get("rate"));
+            plan.setRate(Double.parseDouble(record.get("rate")));
             plan.setRateArea(Integer.parseInt(record.get("rate_area")));
             if (checkNotEmpty(plan)) {
                 log.warn("The following record read in to the parser has an empty column: "
@@ -53,7 +55,7 @@ public class PlanServiceImpl implements PlanService {
     private Boolean checkNotEmpty(Plan plan) {
         return plan.getPlanId().isEmpty() ||
                 plan.getMetalLevel().isEmpty() ||
-                plan.getRate().isEmpty() ||
+                plan.getRate() == null ||
                 plan.getRateArea() == null ||
                 plan.getState().isEmpty();
     }
@@ -68,16 +70,23 @@ public class PlanServiceImpl implements PlanService {
         }
     }
 
-    public String getRateByZipCode(String zipCode) {
+    public List<Plan> getPlansByZipCodeAndMetalLevel(String zipCode, String metalLevel) {
         // potentially too much coupling?
         List<ZipCodeRateArea> rateAreas = zipCodeRepository.findAllRateAreasByZipCode(zipCode);
 
         if (rateAreas.size() == 1) {
-            if (rateAreas.get(0).getRateArea() != null)
-                return planRepository.findPlanByRateArea(rateAreas.get(0).getRateArea()).getRate();
+            if (rateAreas.get(0).getRateArea() != null) {
+                return planRepository.findByRateAreaAndMetalLevelOrderByRateAsc(
+                        rateAreas.get(0).getRateArea(), metalLevel);
+            }
         }
 
-        return "";
+        return Collections.EMPTY_LIST;
+    }
+
+    public Double getSecondLowestSilverRate(String zipCode) {
+        List<Plan> plans = getPlansByZipCodeAndMetalLevel(zipCode, SILVER);
+        return plans.get(1).getRate();
     }
 
 }

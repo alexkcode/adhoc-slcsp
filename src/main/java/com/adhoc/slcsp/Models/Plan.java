@@ -20,7 +20,7 @@ public class Plan implements Serializable {
     @Column(name = "metal_level")
     private String metalLevel;
 
-    private String rate;
+    private Double rate;
 
     // integer to improve potential joins
     @Column(name = "rate_area")

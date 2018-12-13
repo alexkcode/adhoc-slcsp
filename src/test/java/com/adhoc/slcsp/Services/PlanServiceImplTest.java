@@ -14,6 +14,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,38 +48,38 @@ public class PlanServiceImplTest {
 
         assertThat(plans).isNotEmpty();
         assertThat(plans).noneMatch(plan ->
-                plan.getPlanId().isEmpty() ||
-                plan.getMetalLevel().isEmpty() ||
-                plan.getRate().isEmpty() ||
-                plan.getRateArea() == null ||
-                plan.getState().isEmpty()
+                                            plan.getPlanId().isEmpty() ||
+                                                    plan.getMetalLevel().isEmpty() ||
+                                                    plan.getRate() == null ||
+                                                    plan.getRateArea() == null ||
+                                                    plan.getState().isEmpty()
         );
     }
 
     @Test
-    public void whenGivenZipCodeWithTwoRateAreasShouldReturnEmpty() {
+    public void whenGivenZipCodeAndMetalWithTwoRateAreasShouldReturnEmpty() {
+        String zip = "36749";
         ZipCodeRateArea zipCodeRateAreaOne = new ZipCodeRateArea();
         zipCodeRateAreaOne.setRateArea(11);
         ZipCodeRateArea zipCodeRateAreaTwo = new ZipCodeRateArea();
         zipCodeRateAreaTwo.setRateArea(13);
         List<ZipCodeRateArea> fakeReturn = Arrays.asList(zipCodeRateAreaOne, zipCodeRateAreaTwo);
-        when(zipCodeRepository.findAllRateAreasByZipCode("36749")).thenReturn(fakeReturn);
+        when(zipCodeRepository.findAllRateAreasByZipCode(zip)).thenReturn(fakeReturn);
 
-        String zip = "36749";
-        String found = planService.getRateByZipCode(zip);
+        List<Plan> found = planService.getPlansByZipCodeAndMetalLevel(zip, "Silver");
 
-        assertThat(found).isNotNull().isEqualTo("");
+        assertThat(found).isNotNull().isEmpty();
     }
 
     @Test
-    public void whenGivenZipCodeWithEmptyRateAreasShouldReturnEmpty() {
+    public void whenGivenZipCodeAndMetalWithEmptyRateAreasShouldReturnEmpty() {
+        String zip = "36749";
         ZipCodeRateArea zipCodeRateArea = new ZipCodeRateArea();
         zipCodeRateArea.setRateArea(null);
         List<ZipCodeRateArea> fakeReturn = Arrays.asList(zipCodeRateArea);
-        when(zipCodeRepository.findAllRateAreasByZipCode("36749")).thenReturn(fakeReturn);
+        when(zipCodeRepository.findAllRateAreasByZipCode(zip)).thenReturn(fakeReturn);
 
-        String zip = "36749";
-        String found = planService.getRateByZipCode(zip);
+        List<Plan> found = planService.getPlansByZipCodeAndMetalLevel(zip, "Silver");
 
         assertThat(found).isNotNull().isEqualTo("");
     }
@@ -92,13 +93,13 @@ public class PlanServiceImplTest {
 //        Plan fakePlan = Plan.builder().rateArea(11).rate("100.1").build();
         Plan fakePlan = new Plan();
         fakePlan.setRateArea(11);
-        fakePlan.setRate("100.1");
-        when(planRepository.findPlanByRateArea(11)).thenReturn(fakePlan);
+        fakePlan.setRate(100.1);
+        when(planRepository.findByRateAreaAndMetalLevelOrderByRateAsc(11, "Silver"))    .thenReturn(Arrays.asList(fakePlan));
 
         String zip = "36749";
-        String found = planService.getRateByZipCode(zip);
+        List<Plan> found = planService.getPlansByZipCodeAndMetalLevel(zip, "Silver");
 
-        assertThat(found).isNotNull().isEqualTo("100.1");
+        assertThat(found).isNotNull().allMatch(plan -> plan.getRate() == 100.1);
     }
 
 }

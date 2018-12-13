@@ -10,5 +10,5 @@ public interface PlanService {
 
     void saveCsv(String path);
 
-    String getRateByZipCode(String zipCode);
+    List<Plan> getPlansByZipCodeAndMetalLevel(String zipCode, String metalLevel);
 }
