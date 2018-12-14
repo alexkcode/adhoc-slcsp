@@ -22,7 +22,6 @@ public class ZipCodeRateArea implements Serializable {
 
     private String name;
 
-    // integer to improve potential joins
     @Column(name = "rate_area")
     private Integer rateArea;
 

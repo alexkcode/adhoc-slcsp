@@ -1,7 +1,6 @@
 package com.adhoc.slcsp.Services;
 
 import com.adhoc.slcsp.Models.Plan;
-import com.adhoc.slcsp.Models.ZipCodeRateArea;
 import com.adhoc.slcsp.Repositories.PlanRepository;
 import com.adhoc.slcsp.Repositories.ZipCodeRepository;
 import org.apache.commons.csv.CSVFormat;
@@ -17,6 +16,7 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PlanServiceImpl implements PlanService {
@@ -28,7 +28,7 @@ public class PlanServiceImpl implements PlanService {
     PlanRepository planRepository;
 
     @Autowired
-    ZipCodeRepository zipCodeRepository;
+    ZipCodeService zipCodeService;
 
     public List<Plan> parseCsv(String path) throws IOException {
         Reader in = new FileReader(path);
@@ -60,7 +60,6 @@ public class PlanServiceImpl implements PlanService {
                 plan.getState().isEmpty();
     }
 
-    @Override
     public void saveCsv(String path) {
         try {
             List<Plan> parsed = parseCsv(path);
@@ -71,22 +70,29 @@ public class PlanServiceImpl implements PlanService {
     }
 
     public List<Plan> getPlansByZipCodeAndMetalLevel(String zipCode, String metalLevel) {
-        // potentially too much coupling?
-        List<ZipCodeRateArea> rateAreas = zipCodeRepository.findAllRateAreasByZipCode(zipCode);
+        // potentially too much coupling, extract seperate interface? pull to higher level?
+        Optional<Integer> rateAreaByZipCode = zipCodeService.getRateAreaByZipCode(zipCode);
 
-        if (rateAreas.size() == 1) {
-            if (rateAreas.get(0).getRateArea() != null) {
-                return planRepository.findByRateAreaAndMetalLevelOrderByRateAsc(
-                        rateAreas.get(0).getRateArea(), metalLevel);
-            }
-        }
+        if (rateAreaByZipCode.isPresent())
+            return planRepository.findByRateAreaAndMetalLevelOrderByRateAsc(rateAreaByZipCode.get(),
+                                                                            metalLevel);
 
         return Collections.EMPTY_LIST;
     }
 
-    public Double getSecondLowestSilverRate(String zipCode) {
+    public Optional<Double> getSecondLowestSilverRate(String zipCode) {
         List<Plan> plans = getPlansByZipCodeAndMetalLevel(zipCode, SILVER);
-        return plans.get(1).getRate();
+        if (plans.size() == 1) {
+            return Optional.of(plans.get(0).getRate());
+        } else if (plans.size() >= 2) {
+            return Optional.of(plans.get(1).getRate());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    public void writeSecondLowestSilverRateCsv(String path) {
+
     }
 
 }

@@ -4,6 +4,10 @@ import com.adhoc.slcsp.Models.Plan;
 import com.adhoc.slcsp.Models.ZipCodeRateArea;
 import com.adhoc.slcsp.Repositories.PlanRepository;
 import com.adhoc.slcsp.Repositories.ZipCodeRepository;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.CSVPrinter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +16,17 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.BufferedWriter;
+import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 
+import static com.adhoc.slcsp.Services.PlanServiceImpl.SILVER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.filter;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -26,7 +35,7 @@ public class PlanServiceImplTest {
     @TestConfiguration
     static class PlanServiceImplTestContextConfiguration {
         @Bean
-        public PlanService employeeService() {
+        public PlanService planService() {
             return new PlanServiceImpl();
         }
     }
@@ -38,6 +47,9 @@ public class PlanServiceImplTest {
     private PlanRepository planRepository;
 
     @MockBean
+    private ZipCodeService zipCodeService;
+
+    @MockBean
     private ZipCodeRepository zipCodeRepository;
 
     @Test
@@ -47,12 +59,11 @@ public class PlanServiceImplTest {
         List<Plan> plans = planService.parseCsv(path);
 
         assertThat(plans).isNotEmpty();
-        assertThat(plans).noneMatch(plan ->
-                                            plan.getPlanId().isEmpty() ||
-                                                    plan.getMetalLevel().isEmpty() ||
-                                                    plan.getRate() == null ||
-                                                    plan.getRateArea() == null ||
-                                                    plan.getState().isEmpty()
+        assertThat(plans).noneMatch(plan -> plan.getPlanId().isEmpty() ||
+                plan.getMetalLevel().isEmpty() ||
+                plan.getRate() == null ||
+                plan.getRateArea() == null ||
+                plan.getState().isEmpty()
         );
     }
 
@@ -81,7 +92,7 @@ public class PlanServiceImplTest {
 
         List<Plan> found = planService.getPlansByZipCodeAndMetalLevel(zip, "Silver");
 
-        assertThat(found).isNotNull().isEqualTo("");
+        assertThat(found).isNotNull().isEqualTo(Collections.EMPTY_LIST);
     }
 
     @Test
@@ -94,12 +105,36 @@ public class PlanServiceImplTest {
         Plan fakePlan = new Plan();
         fakePlan.setRateArea(11);
         fakePlan.setRate(100.1);
-        when(planRepository.findByRateAreaAndMetalLevelOrderByRateAsc(11, "Silver"))    .thenReturn(Arrays.asList(fakePlan));
+        when(planRepository.findByRateAreaAndMetalLevelOrderByRateAsc(11, "Silver"))
+                .thenReturn(Arrays.asList(fakePlan));
 
         String zip = "36749";
         List<Plan> found = planService.getPlansByZipCodeAndMetalLevel(zip, "Silver");
 
         assertThat(found).isNotNull().allMatch(plan -> plan.getRate() == 100.1);
+    }
+
+    @Test
+    public void whenGivenZipCodeReturnSecondLowestRate() throws IOException {
+        String zipCode = "01001";
+        Plan planOne = new Plan();
+        planOne.setRate(100.1);
+        Plan planTwo = new Plan();
+        planTwo.setRate(200.2);
+        when(zipCodeService.getRateAreaByZipCode(zipCode)).thenReturn(Optional.of(35));
+        when(planRepository.findByRateAreaAndMetalLevelOrderByRateAsc(35,
+                                                                      SILVER)).thenReturn(Arrays.asList(
+                planOne,
+                planTwo));
+
+        Optional<Double> secondLowestSilverRate = planService.getSecondLowestSilverRate(zipCode);
+
+        assertThat(secondLowestSilverRate.get()).isEqualTo(200.2);
+    }
+
+    @Test
+    public void whenGivenZipCodeWithNoRateReturnEmpty() {
+
     }
 
 }

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ZipCodeServiceImpl implements ZipCodeService {
@@ -62,16 +63,15 @@ public class ZipCodeServiceImpl implements ZipCodeService {
         }
     }
 
-    public Integer getRateAreaByZipCode(String zipCode) {
+    public Optional<Integer> getRateAreaByZipCode(String zipCode) {
 
         List<ZipCodeRateArea> rateAreas = zipCodeRepository.findAllRateAreasByZipCode(zipCode);
 
         if (rateAreas.size() == 1) {
-            if (rateAreas.get(0).getRateArea() != null)
-                return rateAreas.get(0).getRateArea();
+            return Optional.of(rateAreas.get(0).getRateArea());
         }
 
-        return null;
+        return Optional.empty();
     }
 
 }

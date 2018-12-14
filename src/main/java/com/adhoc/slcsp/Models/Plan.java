@@ -22,7 +22,6 @@ public class Plan implements Serializable {
 
     private Double rate;
 
-    // integer to improve potential joins
     @Column(name = "rate_area")
     private Integer rateArea;
 
