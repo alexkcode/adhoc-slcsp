@@ -65,7 +65,7 @@ public class ZipCodeServiceImpl implements ZipCodeService {
 
     public Optional<Integer> getRateAreaByZipCode(String zipCode) {
 
-        List<ZipCodeRateArea> rateAreas = zipCodeRepository.findAllRateAreasByZipCode(zipCode);
+        List<ZipCodeRateArea> rateAreas = zipCodeRepository.findAllZipCodeRateAreasByZipCode(zipCode);
 
         if (rateAreas.size() == 1) {
             return Optional.of(rateAreas.get(0).getRateArea());

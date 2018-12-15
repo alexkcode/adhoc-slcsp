@@ -4,10 +4,6 @@ import com.adhoc.slcsp.Models.Plan;
 import com.adhoc.slcsp.Models.ZipCodeRateArea;
 import com.adhoc.slcsp.Repositories.PlanRepository;
 import com.adhoc.slcsp.Repositories.ZipCodeRepository;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.csv.CSVPrinter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,17 +12,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.BufferedWriter;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static com.adhoc.slcsp.Services.PlanServiceImpl.SILVER;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.filter;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -75,7 +68,7 @@ public class PlanServiceImplTest {
         ZipCodeRateArea zipCodeRateAreaTwo = new ZipCodeRateArea();
         zipCodeRateAreaTwo.setRateArea(13);
         List<ZipCodeRateArea> fakeReturn = Arrays.asList(zipCodeRateAreaOne, zipCodeRateAreaTwo);
-        when(zipCodeRepository.findAllRateAreasByZipCode(zip)).thenReturn(fakeReturn);
+        when(zipCodeRepository.findAllZipCodeRateAreasByZipCode(zip)).thenReturn(fakeReturn);
 
         List<Plan> found = planService.getPlansByZipCodeAndMetalLevel(zip, "Silver");
 
@@ -88,7 +81,7 @@ public class PlanServiceImplTest {
         ZipCodeRateArea zipCodeRateArea = new ZipCodeRateArea();
         zipCodeRateArea.setRateArea(null);
         List<ZipCodeRateArea> fakeReturn = Arrays.asList(zipCodeRateArea);
-        when(zipCodeRepository.findAllRateAreasByZipCode(zip)).thenReturn(fakeReturn);
+        when(zipCodeRepository.findAllZipCodeRateAreasByZipCode(zip)).thenReturn(fakeReturn);
 
         List<Plan> found = planService.getPlansByZipCodeAndMetalLevel(zip, "Silver");
 
@@ -98,14 +91,14 @@ public class PlanServiceImplTest {
     @Test
     public void whenGivenZipCodeWithOneRateAreaShouldReturnOneRate() {
         ZipCodeRateArea zipCodeRateArea = new ZipCodeRateArea();
-        zipCodeRateArea.setRateArea(11);
+        int rateArea = 11;
+        zipCodeRateArea.setRateArea(rateArea);
         List<ZipCodeRateArea> fakeReturn = Arrays.asList(zipCodeRateArea);
-        when(zipCodeRepository.findAllRateAreasByZipCode("36749")).thenReturn(fakeReturn);
-//        Plan fakePlan = Plan.builder().rateArea(11).rate("100.1").build();
+        when(zipCodeRepository.findAllZipCodeRateAreasByZipCode("36749")).thenReturn(fakeReturn);
         Plan fakePlan = new Plan();
-        fakePlan.setRateArea(11);
+        fakePlan.setRateArea(rateArea);
         fakePlan.setRate(100.1);
-        when(planRepository.findByRateAreaAndMetalLevelOrderByRateAsc(11, "Silver"))
+        when(planRepository.findByRateAreaAndMetalLevelOrderByRateAsc(rateArea, "Silver"))
                 .thenReturn(Arrays.asList(fakePlan));
 
         String zip = "36749";
@@ -115,17 +108,16 @@ public class PlanServiceImplTest {
     }
 
     @Test
-    public void whenGivenZipCodeReturnSecondLowestRate() throws IOException {
+    public void whenGivenZipCodeWithTwoRatesReturnSecondLowestRate() throws IOException {
         String zipCode = "01001";
         Plan planOne = new Plan();
         planOne.setRate(100.1);
         Plan planTwo = new Plan();
         planTwo.setRate(200.2);
         when(zipCodeService.getRateAreaByZipCode(zipCode)).thenReturn(Optional.of(35));
+        List<Plan> plans = Arrays.asList(planOne, planTwo);
         when(planRepository.findByRateAreaAndMetalLevelOrderByRateAsc(35,
-                                                                      SILVER)).thenReturn(Arrays.asList(
-                planOne,
-                planTwo));
+                                                                      SILVER)).thenReturn(plans);
 
         Optional<Double> secondLowestSilverRate = planService.getSecondLowestSilverRate(zipCode);
 
@@ -133,8 +125,32 @@ public class PlanServiceImplTest {
     }
 
     @Test
-    public void whenGivenZipCodeWithNoRateReturnEmpty() {
+    public void whenGivenZipCodeWithOneRateReturnOnlyRate() {
+        String zipCode = "01001";
+        double correctRate = 100.1;
+        Plan planOne = new Plan();
+        planOne.setRate(correctRate);
+        when(zipCodeService.getRateAreaByZipCode(zipCode)).thenReturn(Optional.of(35));
+        List<Plan> plans = Arrays.asList(planOne);
+        when(planRepository.findByRateAreaAndMetalLevelOrderByRateAsc(35,
+                                                                      SILVER)).thenReturn(plans);
 
+        Optional<Double> secondLowestSilverRate = planService.getSecondLowestSilverRate(zipCode);
+
+        assertThat(secondLowestSilverRate.get()).isEqualTo(correctRate);
+    }
+
+    @Test
+    public void whenGivenZipCodeWithZeroRatesReturnEmpty() {
+        String zipCode = "01001";
+        when(zipCodeService.getRateAreaByZipCode(zipCode)).thenReturn(Optional.of(35));
+        List<Plan> plans = Collections.EMPTY_LIST;
+        when(planRepository.findByRateAreaAndMetalLevelOrderByRateAsc(35,
+                                                                      SILVER)).thenReturn(plans);
+
+        Optional<Double> secondLowestSilverRate = planService.getSecondLowestSilverRate(zipCode);
+
+        assertThat(secondLowestSilverRate).isEmpty();
     }
 
 }
