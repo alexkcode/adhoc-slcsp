@@ -13,12 +13,16 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
+/**
+ * @author Alexis Kwan
+ * @since 12-14-2018
+ */
 @SpringBootApplication
-//@EnableJpaRepositories(basePackageClasses= {ZipCodeRepository.class})
 public class SlcspApplication implements ApplicationRunner {
 
     public static final String ZIPCODES_PATH = "zipcodes.path";
     public static final String PLANS_PATH = "plans.path";
+    public static final String SLCSP_PATH = "slcsp.path";
     Logger log = LoggerFactory.getLogger(SlcspApplication.class);
 
     @Autowired
@@ -40,36 +44,30 @@ public class SlcspApplication implements ApplicationRunner {
     }
 
     private void checkArgs(ApplicationArguments args) {
-        if (!args.containsOption(ZIPCODES_PATH)) {
-            log.error(ZIPCODES_PATH + " is missing from the passed arguments!");
-        } else if (args.getOptionValues(ZIPCODES_PATH).size() != 1){
-            log.error("Too many values were passed to " + ZIPCODES_PATH + "!");
-        }
-
-        if (!args.containsOption(PLANS_PATH)) {
-            log.error(PLANS_PATH + " is missing from the passed arguments!");
-        } else if ((args.getOptionValues(PLANS_PATH).size() != 1)) {
-            log.error("Too many values were passed to " + PLANS_PATH + "!");
-        }
+        args.getOptionNames().stream().forEach(option -> {
+            if (!args.containsOption(option)) {
+                log.error(option + " is missing from the passed arguments!");
+            } else if (args.getOptionValues(option).size() != 1){
+                log.error("Too many values were passed to " + option + "!");
+            }
+        });
     }
 
     @Override
     public void run(ApplicationArguments args) {
-//        checkArgs(args);
+        checkArgs(args);
         // no requirements were given for update logic so the DB is cleared every time the
         // application is run
         zipCodeRepository.deleteAll();
         planRepository.deleteAll();
-
-//        String zipPath = getClass().getClassLoader().getResource("zips.csv").getPath();
-//        String planPath = getClass().getClassLoader().getResource("plans.csv").getPath();
-//        zipCodeService.saveCsv(zipPath);
-//        planService.saveCsv(planPath);
         zipCodeService.saveCsv(args.getOptionValues(ZIPCODES_PATH).get(0));
         planService.saveCsv(args.getOptionValues(PLANS_PATH).get(0));
 
         log.info("Sample Rate Area : " + zipCodeService.getRateAreaByZipCode("36068").get());
         log.info("Sample Plan : " + planRepository.findByPlanId("47011NC7752714").get());
+
+        log.info("Starting writer portion.");
+        planService.writeSecondLowestSilverRateCsv(args.getOptionValues(SLCSP_PATH).get(0));
     }
 
 }

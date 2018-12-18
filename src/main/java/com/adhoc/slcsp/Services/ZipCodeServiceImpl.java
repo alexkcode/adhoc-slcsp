@@ -16,6 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @author Alexis Kwan
+ * @since 12-14-2018
+ */
 @Service
 public class ZipCodeServiceImpl implements ZipCodeService {
 
@@ -26,8 +30,10 @@ public class ZipCodeServiceImpl implements ZipCodeService {
 
     public List<ZipCodeRateArea> parseCsv(String path) throws IOException {
         Reader in = new FileReader(path);
-        Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(in);
-        // appending at the end is O(1), just not for random access
+        Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader()
+                .withIgnoreHeaderCase()
+                .parse(in);
+
         List<ZipCodeRateArea> parsed = new ArrayList<>();
         for (CSVRecord record : records) {
             ZipCodeRateArea zipCodeRateArea = new ZipCodeRateArea();

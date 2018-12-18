@@ -2,22 +2,23 @@ package com.adhoc.slcsp.Services;
 
 import com.adhoc.slcsp.Models.Plan;
 import com.adhoc.slcsp.Repositories.PlanRepository;
-import com.adhoc.slcsp.Repositories.ZipCodeRepository;
 import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 
+/**
+ * @author Alexis Kwan
+ * @since 12-14-2018
+ */
 @Service
 public class PlanServiceImpl implements PlanService {
 
@@ -32,7 +33,9 @@ public class PlanServiceImpl implements PlanService {
 
     public List<Plan> parseCsv(String path) throws IOException {
         Reader in = new FileReader(path);
-        Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(in);
+        Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader()
+                .withIgnoreHeaderCase()
+                .parse(in);
 
         List<Plan> parsed = new ArrayList<>();
         for (CSVRecord record : records) {
@@ -70,7 +73,7 @@ public class PlanServiceImpl implements PlanService {
     }
 
     public List<Plan> getPlansByZipCodeAndMetalLevel(String zipCode, String metalLevel) {
-        // potentially too much coupling, extract seperate interface? pull to higher level?
+        // potentially too much coupling
         Optional<Integer> rateAreaByZipCode = zipCodeService.getRateAreaByZipCode(zipCode);
 
         if (rateAreaByZipCode.isPresent())
@@ -92,6 +95,36 @@ public class PlanServiceImpl implements PlanService {
     }
 
     public void writeSecondLowestSilverRateCsv(String path) {
+        try {
+            log.info("Reading file : " + path);
+            Reader in = new FileReader(path);
+            CSVFormat csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase();
+            List<CSVRecord> records = csvFormat.parse(in).getRecords();
+
+            FileWriter fileWriter = new FileWriter(path);
+            CSVPrinter csvPrinter = CSVFormat.DEFAULT.withHeader("zipcode","rate").print(fileWriter);
+
+            log.info("Writing to file.");
+            records.forEach(record -> {
+                try {
+                    String zipcode = record.get("zipcode");
+                    Optional<Double> rate = getSecondLowestSilverRate(zipcode);
+                    if (rate.isPresent())
+                        csvPrinter.printRecord(zipcode, rate.get());
+                    else
+                        csvPrinter.printRecord(zipcode, "");
+                } catch (IOException e) {
+                    log.error(e.getMessage());
+                }
+            });
+            fileWriter.close();
+            in.close();
+            log.info("Finished writing to file.");
+        } catch (FileNotFoundException e) {
+            log.error("Please check your SLCSP file path.\n" + e.getMessage());
+        } catch (IOException e) {
+            log.error("Please check that the format of your SLCSP file is correct.\n" + e.getMessage());
+        }
 
     }
 
