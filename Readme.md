@@ -25,7 +25,10 @@
             - Under System Variables find the PATH variable and append the path of the java installation to the end. It should look something like `C:\WINDOWS\system32;C:\WINDOWS;"C:\Program Files\Java\jdk-11\bin"`. Please note all variables must be separated by a semicolon.
             - Under System Variables again, create a new variable with the name `JAVA_HOME` and point it to the same JDK installation directory.
         - Install Maven
-            - 
+            - Download the appropriate maven install zip file from https://maven.apache.org/download.cgi.
+            - Unzip the file to any directory using your favorite program or simply `unzip apache-maven-3.6.0-bin.zip` in the console (with the appropriate version number).
+            - Add the `bin` directory of the maven directory you unzipped to the Windows `PATH` variable.
+            - Confirm that Maven is installed with `mvn -version` in the console.
         
 - Compiling and running the program
     - In the root of the project compile the program using `mvn clean package`.
