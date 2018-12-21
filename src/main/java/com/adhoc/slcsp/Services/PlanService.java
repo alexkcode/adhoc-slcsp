@@ -16,4 +16,6 @@ public interface PlanService {
     Optional<Double> getSecondLowestSilverRate(String zipCode);
 
     void writeSecondLowestSilverRateCsv(String path);
+
+    void outputSecondLowestSilverRateCsv(String path);
 }

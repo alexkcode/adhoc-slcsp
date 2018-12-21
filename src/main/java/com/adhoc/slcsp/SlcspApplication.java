@@ -59,11 +59,7 @@ public class SlcspApplication implements ApplicationRunner {
         zipCodeService.saveCsv(args.getOptionValues(ZIPCODES_PATH).get(0));
         planService.saveCsv(args.getOptionValues(PLANS_PATH).get(0));
 
-        log.info("Sample Rate Area : " + zipCodeService.getRateAreaByZipCode("36068").get());
-        log.info("Sample Plan : " + planRepository.findByPlanId("47011NC7752714").get());
-
-        log.info("Starting writer portion.");
-        planService.writeSecondLowestSilverRateCsv(args.getOptionValues(SLCSP_PATH).get(0));
+        planService.outputSecondLowestSilverRateCsv(args.getOptionValues(SLCSP_PATH).get(0));
     }
 
 }

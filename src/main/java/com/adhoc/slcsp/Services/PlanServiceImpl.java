@@ -125,4 +125,27 @@ public class PlanServiceImpl implements PlanService {
 
     }
 
+    @Override
+    public void outputSecondLowestSilverRateCsv(String path) {
+        try {
+            Reader in = new FileReader(path);
+            CSVFormat csvFormat = CSVFormat.DEFAULT.withFirstRecordAsHeader().withIgnoreHeaderCase();
+            List<CSVRecord> records = csvFormat.parse(in).getRecords();
+            System.out.println("zipcode,rate");
+            records.forEach(record -> {
+                String zipcode = record.get("zipcode");
+                Optional<Double> rate = getSecondLowestSilverRate(zipcode);
+                if (rate.isPresent())
+                    System.out.println(zipcode + "," + rate.get());
+                else
+                    System.out.println(zipcode + ",");
+            });
+            in.close();
+        } catch (FileNotFoundException e) {
+            log.error("Please check your SLCSP file path.\n" + e.getMessage());
+        } catch (IOException e) {
+            log.error("Please check that the format of your SLCSP file is correct.\n" + e.getMessage());
+        }
+    }
+
 }
