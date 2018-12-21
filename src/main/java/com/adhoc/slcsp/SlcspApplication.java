@@ -13,10 +13,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-/**
- * @author Alexis Kwan
- * @since 12-14-2018
- */
 @SpringBootApplication
 public class SlcspApplication implements ApplicationRunner {
 
