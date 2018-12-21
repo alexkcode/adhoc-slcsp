@@ -42,6 +42,7 @@
         
 - Compiling and running the program
     - In the root of the project compile the program using `mvn clean package`.
+    - A compilied jar is in the project root for your convenience.
     - Run the program using `java -jar jar-dir/slcsp-1.0.0-RELEASE.jar --zipcodes.path=zip-csv-path --plans.path=plan-csv-path --slcsp.path=slcsp-csv-path`
         - epxcted path format: `/path/to/thing`
         - jar-dir is the path to the jar file for execution
