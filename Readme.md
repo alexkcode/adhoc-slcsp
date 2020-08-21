@@ -5,6 +5,11 @@
 - Installing JDK 1.8+ (only tested with Oracle JDK) and Maven
     - Mac OS X
         - Run the following commands in the terminal: `brew tap caskroom/versions && brew cask install java8`.
+    - Archlinux / Manjaro
+        - Install Java 8+ if not already installed 
+            - Something like 'sudo pamac install jdk8-openjdk'
+        - Switch to JDK environment
+            - `sudo archlinux-java set java-11-openjdk`
     - Cent OS / Fedora
         - Run the following commands in the shell `cd ~ && wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "http://link_copied_from_site"`
         - After it is done downloading run `sudo yum localinstall jdk-8u161-linux-x64.rpm`.
